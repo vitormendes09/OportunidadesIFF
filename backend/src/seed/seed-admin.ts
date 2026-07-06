@@ -32,7 +32,11 @@ async function bootstrap() {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    await usersService.createAdmin({ name: 'Administrador', email, passwordHash });
+    await usersService.createAdmin({
+      name: 'Administrador',
+      email,
+      passwordHash,
+    });
 
     logger.log(`Admin criado com sucesso: ${email}`);
   } finally {
@@ -40,4 +44,7 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  logger.error('Falha ao rodar o seed do Admin.', error);
+  process.exitCode = 1;
+});
