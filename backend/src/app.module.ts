@@ -2,6 +2,7 @@ import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
+import { CoursesModule } from './courses/courses.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 
@@ -34,6 +35,7 @@ const logger = new Logger('MongoDB');
     HealthModule,
     UsersModule,
     AuthModule,
+    CoursesModule,
   ],
 })
 export class AppModule {}
