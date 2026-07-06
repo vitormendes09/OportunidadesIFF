@@ -134,16 +134,16 @@ OportunidadesIFF/
 - [x] Projeto Next.js gerado em `frontend/`
 - [x] MongoDB Atlas criado (cluster `Cluster0`, banco `oportunidades-iff`)
 - [x] `.env` e `.env.example` configurados em `backend/` e `frontend/`
-- [ ] `ConfigModule` + `MongooseModule` conectados e validados no `app.module.ts`
-- [ ] Endpoint de health check confirmando conexão com o banco
-- [ ] Schemas do Mongoose (`User`, `Course`, `Job`) criados
-- [ ] Módulo de autenticação (JWT) implementado
-- [ ] Seed do Admin inicial implementado
-- [ ] CRUD de Course
+- [x] `ConfigModule` + `MongooseModule` conectados e validados no `app.module.ts`
+- [x] Endpoint de health check confirmando conexão com o banco
+- [x] Schema do Mongoose de `User` criado (discriminado por `role`) — `Job` ainda pendente (Etapa 03)
+- [x] Módulo de autenticação (JWT) implementado — register, login, verify-email (stub), guards de autenticação e de role
+- [x] Seed do Admin inicial implementado (`npm run seed:admin`)
+- [x] CRUD de Course — schema + `POST/GET/PATCH/DELETE /courses` (soft delete), reaproveitando guards da Etapa 01
 - [ ] CRUD de Job (Admin)
 - [ ] Listagem/filtro de Job (Student)
-- [ ] CRUD de perfil (Admin e Student)
-- [ ] Endpoint de desativação de Student (Admin)
+- [x] CRUD de perfil (Admin e Student) — `GET/PATCH /users/me`
+- [x] Endpoint de desativação de Student (Admin) — inclui reativação (`activate`)
 - [ ] Frontend: telas de login/cadastro
 - [ ] Frontend: painel Admin
 - [ ] Frontend: painel/listagem Student
