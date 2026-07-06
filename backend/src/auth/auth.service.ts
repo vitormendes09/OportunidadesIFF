@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -20,13 +25,20 @@ export class AuthService {
   ) {}
 
   private isEmailVerificationEnabled(): boolean {
-    return this.configService.get<string>('EMAIL_VERIFICATION_ENABLED') === 'true';
+    return (
+      this.configService.get<string>('EMAIL_VERIFICATION_ENABLED') === 'true'
+    );
   }
 
   async register(dto: RegisterDto): Promise<UserResponseDto> {
-    const allowedDomain = this.configService.get<string>('ALLOWED_EMAIL_DOMAIN');
+    const allowedDomain = this.configService.get<string>(
+      'ALLOWED_EMAIL_DOMAIN',
+    );
 
-    if (!allowedDomain || !dto.email.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`)) {
+    if (
+      !allowedDomain ||
+      !dto.email.toLowerCase().endsWith(`@${allowedDomain.toLowerCase()}`)
+    ) {
       throw new BadRequestException(
         `Cadastro permitido apenas com e-mail institucional @${allowedDomain}.`,
       );
@@ -51,13 +63,18 @@ export class AuthService {
     });
 
     if (emailVerificationEnabled && emailVerificationToken) {
-      await this.mailService.sendVerificationEmail(user.email, emailVerificationToken);
+      await this.mailService.sendVerificationEmail(
+        user.email,
+        emailVerificationToken,
+      );
     }
 
     return this.usersService.sanitize(user);
   }
 
-  async login(dto: LoginDto): Promise<{ accessToken: string; user: UserResponseDto }> {
+  async login(
+    dto: LoginDto,
+  ): Promise<{ accessToken: string; user: UserResponseDto }> {
     const user = await this.usersService.findByEmailWithPassword(dto.email);
 
     if (!user) {
@@ -68,7 +85,10 @@ export class AuthService {
       throw new UnauthorizedException('Usuário desativado.');
     }
 
-    const passwordMatches = await bcrypt.compare(dto.password, user.passwordHash);
+    const passwordMatches = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
+    );
     if (!passwordMatches) {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
