@@ -7,9 +7,10 @@ import { Injectable, Logger } from '@nestjs/common';
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  async sendVerificationEmail(to: string, token: string): Promise<void> {
+  sendVerificationEmail(to: string, token: string): Promise<void> {
     this.logger.log(
       `[STUB] E-mail de verificação seria enviado para ${to} com token: ${token}`,
     );
+    return Promise.resolve();
   }
 }
