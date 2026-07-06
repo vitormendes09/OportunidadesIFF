@@ -1,10 +1,11 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { Role } from '../enums/role.enum';
+import type { UserDocument } from '../schemas/user.schema';
 
 @Exclude()
 export class UserResponseDto {
   @Expose()
-  @Transform(({ obj }) => obj._id?.toString())
+  @Transform(({ obj }: { obj: UserDocument }) => obj._id?.toString())
   id: string;
 
   @Expose()
@@ -23,7 +24,7 @@ export class UserResponseDto {
   isEmailVerified: boolean;
 
   @Expose()
-  @Transform(({ obj }) => obj.course?.toString())
+  @Transform(({ obj }: { obj: UserDocument }) => obj.course?.toString())
   course?: string;
 
   @Expose()

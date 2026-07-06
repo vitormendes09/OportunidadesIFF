@@ -9,7 +9,10 @@ import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { Model, Types } from 'mongoose';
 import { UpdateMeDto } from './dto/update-me.dto';
-import { ListStudentsQueryDto } from './dto/list-students-query.dto';
+import {
+  ListStudentsQueryDto,
+  StudentStatusFilter,
+} from './dto/list-students-query.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { Role } from './enums/role.enum';
 import { User, UserDocument } from './schemas/user.schema';
@@ -90,7 +93,10 @@ export class UsersService {
   }
 
   async updateMe(user: UserDocument, dto: UpdateMeDto): Promise<UserDocument> {
-    if (user.role === Role.ADMIN && (dto.course !== undefined || dto.period !== undefined)) {
+    if (
+      user.role === Role.ADMIN &&
+      (dto.course !== undefined || dto.period !== undefined)
+    ) {
       throw new BadRequestException('Admin não possui curso ou período.');
     }
 
@@ -108,8 +114,8 @@ export class UsersService {
   async listStudents(query: ListStudentsQueryDto): Promise<UserDocument[]> {
     const filter: Record<string, unknown> = { role: Role.STUDENT };
 
-    if (query.status === 'active') filter.isActive = true;
-    if (query.status === 'inactive') filter.isActive = false;
+    if (query.status === StudentStatusFilter.ACTIVE) filter.isActive = true;
+    if (query.status === StudentStatusFilter.INACTIVE) filter.isActive = false;
     if (query.course) filter.course = new Types.ObjectId(query.course);
 
     return this.userModel.find(filter).sort({ createdAt: -1 }).exec();
@@ -123,8 +129,13 @@ export class UsersService {
     return this.setStudentActiveState(id, true);
   }
 
-  private async setStudentActiveState(id: string, isActive: boolean): Promise<UserDocument> {
-    const student = await this.userModel.findOne({ _id: id, role: Role.STUDENT }).exec();
+  private async setStudentActiveState(
+    id: string,
+    isActive: boolean,
+  ): Promise<UserDocument> {
+    const student = await this.userModel
+      .findOne({ _id: id, role: Role.STUDENT })
+      .exec();
     if (!student) {
       throw new NotFoundException('Student não encontrado.');
     }

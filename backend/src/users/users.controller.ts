@@ -41,7 +41,9 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('students')
-  async listStudents(@Query() query: ListStudentsQueryDto): Promise<UserResponseDto[]> {
+  async listStudents(
+    @Query() query: ListStudentsQueryDto,
+  ): Promise<UserResponseDto[]> {
     const students = await this.usersService.listStudents(query);
     return students.map((student) => this.usersService.sanitize(student));
   }
