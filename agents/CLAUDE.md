@@ -86,7 +86,7 @@ Relação: `1 Admin → N Job` | `N Job ↔ N Course`.
 
 | Camada | Tecnologia | Observação |
 |---|---|---|
-| Frontend | Next.js (App Router, TypeScript, `src/`) | `frontend/` |
+| Frontend | Next.js (App Router, TypeScript, `src/`) + **Tailwind CSS** (layout/utilitários) + **Material UI** (componentes complexos: tabelas, formulários, dialogs) | `frontend/`. Identidade visual e tokens completos em `agents/design-system.md` |
 | Backend | NestJS (TypeScript) | `backend/` |
 | Banco | MongoDB Atlas via Mongoose | Nome do banco: `oportunidades-iff` |
 | Auth | JWT (`@nestjs/jwt` + `@nestjs/passport` + `passport-jwt`) | Token com `sub` (userId) e `role` |
@@ -95,6 +95,10 @@ Relação: `1 Admin → N Job` | `N Job ↔ N Course`.
 | E-mail | `nodemailer` | Provedor ainda não decidido — ver Pendências |
 | Monorepo | Uma raiz com `README.md`, `agents/`, `backend/`, `frontend/` | Sem workspace tool (lerna/turborepo) configurado ainda |
 | Gitignore | Único, na raiz (`.gitignore` consolidado) | Não usar `.gitignore` por subpasta |
+| Sessão (frontend) | Cookie (não `httpOnly`) via `js-cookie`, nome `oiff_token`, `expires: 1` dia | Escolhido (Etapa 04) em vez de `localStorage` para permitir leitura futura por Server Components/Proxy do Next. Não pode ser `httpOnly` porque quem grava o cookie é o próprio JS do frontend, após receber o token de um backend em outra origem — o Next não emite o `Set-Cookie`. Ver `src/lib/session.ts` |
+| Proteção de rota (frontend) | `src/proxy.ts` (Next.js 16 renomeou Middleware → Proxy) decodifica o payload do JWT do cookie **sem validar assinatura** (checagem otimista) | A autorização real continua sempre no backend (`RolesGuard`); o Proxy só evita flash de conteúdo protegido/redireciona cedo |
+| CORS (backend) | `app.enableCors({ origin: FRONTEND_URL, credentials: true })` em `main.ts` | **Adicionado na Etapa 04** — não existia antes e bloqueava toda chamada do navegador ao backend. `FRONTEND_URL` novo em `.env`/`.env.example` (default `http://localhost:3000`) |
+| `GET /courses` (backend) | Não exige mais JWT (guard movido de nível de classe para os demais endpoints) | **Alterado na Etapa 04** — a tela pública de `/register` precisa listar cursos antes de o Student ter qualquer token. Nome de curso não é dado sensível. `includeInactive` continua só tendo efeito para Admin autenticado |
 
 **Convenções de código a seguir:**
 - TypeScript com tipagem explícita em todo lugar (evitar `any`).
@@ -135,18 +139,30 @@ OportunidadesIFF/
 - [x] MongoDB Atlas criado (cluster `Cluster0`, banco `oportunidades-iff`)
 - [x] `.env` e `.env.example` configurados em `backend/` e `frontend/`
 - [x] `ConfigModule` + `MongooseModule` conectados e validados no `app.module.ts`
-- [x] Endpoint de health check confirmando conexão com o banco
-- [x] Schema do Mongoose de `User` criado (discriminado por `role`)
-- [x] Módulo de autenticação (JWT) implementado — register, login, verify-email (stub), guards de autenticação e de role
-- [x] Seed do Admin inicial implementado (`npm run seed:admin`)
-- [x] CRUD de Course — schema + `POST/GET/PATCH/DELETE /courses` (soft delete), reaproveitando guards da Etapa 01
-- [x] CRUD de Job (Admin) — schema + `POST/PATCH/DELETE /jobs`, `GET /jobs/admin`, validação de curso existente/ativo e de `benefitsDescription` condicional
-- [x] Listagem/filtro de Job (Student) — `GET /jobs` e `GET /jobs/:id`, filtros por `course`/`requiredPeriod`/`specialty`, ordenação LIFO por `publishedAt`
-- [x] CRUD de perfil (Admin e Student) — `GET/PATCH /users/me`
-- [x] Endpoint de desativação de Student (Admin) — inclui reativação (`activate`)
-- [ ] Frontend: telas de login/cadastro
-- [ ] Frontend: painel Admin
-- [ ] Frontend: painel/listagem Student
+- [x] Endpoint de health check confirmando conexão com o banco (`GET /health`)
+- [x] Schemas do Mongoose (`User`, `Course`, `Job`) criados
+- [x] Módulo de autenticação (JWT) implementado
+- [x] Seed do Admin inicial implementado
+- [x] CRUD de Course
+- [x] CRUD de Job (Admin)
+- [x] Listagem/filtro de Job (Student)
+- [x] CRUD de perfil (Admin e Student)
+- [x] Endpoint de desativação de Student (Admin)
+- [x] Frontend: fundação (Tailwind + MUI + tema compartilhado + cliente HTTP +
+      AuthContext + proteção de rotas) e telas de login/cadastro — Etapa 04
+- [x] Frontend: painel Admin (`/admin/jobs`, `/admin/courses`, `/admin/students` —
+      CRUD de vaga e curso, gestão de alunos, ativar/desativar com confirmação) — Etapa 05
+- [x] Frontend: painel/listagem Student (`/vagas` — grid de cards com filtro por
+      curso/período/especialidade; `/vagas/[id]` — detalhe, redirecionamento e
+      compartilhar; `/perfil` — edição de nome/curso/período) — Etapa 06
+
+> 🎯 **Marco atingido:** com a Etapa 06, o fluxo funcional completo descrito no
+> `README.md` está coberto entre backend e frontend — cadastro/login de Student,
+> listagem/filtro/detalhe/compartilhamento de vaga com redirecionamento externo
+> (nunca candidatura interna, RN14), edição de perfil, e o painel completo do Admin
+> (vagas, cursos, alunos). Itens que faltam são todos pendências já registradas na
+> seção 8 (paginação, recuperação de senha, verificação de e-mail, notificações,
+> estatísticas, auditoria), não lacunas do fluxo principal.
 
 > ⚠️ Agente: sempre que concluir um item desta lista em uma sessão de trabalho,
 > atualize este checklist antes de finalizar a resposta.
@@ -168,7 +184,12 @@ e sinalize a pendência se o pedido do usuário esbarrar em alguma delas.
 - Notificação ao aluno quando sai vaga nova do seu curso — não definido se existirá.
 - Painel de estatísticas para o Admin — não definido.
 - Auditoria/logs de ações do Admin (quem criou/removeu qual vaga) — não definido.
-- Design system / identidade visual do frontend — não definido.
+- **Reativação de Job:** não existe endpoint dedicado (`/jobs/:id/activate`, no molde
+  de `/users/students/:id/activate`). Confirmado na Etapa 05: `UpdateJobDto` aceita
+  `isActive` opcional e `JobsService.update()` já aplica esse campo, então o frontend
+  reativa via `PATCH /jobs/:id { isActive: true }` (testado e funcional). Se algum dia
+  o backend ganhar uma rota dedicada, o frontend (`src/app/(app)/admin/jobs/page.tsx`)
+  pode ser simplificado para usá-la, mas não é obrigatório.
 
 ---
 
