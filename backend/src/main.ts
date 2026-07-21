@@ -8,6 +8,11 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') ?? 3001;
 
+  app.enableCors({
+    origin: configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000',
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

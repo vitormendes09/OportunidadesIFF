@@ -22,11 +22,10 @@ import { ListCoursesQueryDto } from './dto/list-courses-query.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Controller('courses')
-@UseGuards(JwtAuthGuard)
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
   async create(@Body() dto: CreateCourseDto): Promise<CourseResponseDto> {
@@ -34,25 +33,29 @@ export class CoursesController {
     return this.coursesService.sanitize(course);
   }
 
+  // Sem guard de propósito: a tela pública de /register precisa listar cursos
+  // antes de o Student ter qualquer token (ver agents/CLAUDE.md seção 8/decisões).
+  // Nome de curso não é dado sensível. `includeInactive` só tem efeito para Admin
+  // autenticado — anônimo/Student sempre recebe apenas cursos ativos.
   @Get()
   async findAll(
     @Query() query: ListCoursesQueryDto,
-    @CurrentUser() user: UserDocument,
+    @CurrentUser() user: UserDocument | undefined,
   ): Promise<CourseResponseDto[]> {
-    // Apenas Admin pode enxergar cursos inativos; para Student o parâmetro é ignorado.
     const includeInactive =
-      user.role === Role.ADMIN && query.includeInactive === true;
+      user?.role === Role.ADMIN && query.includeInactive === true;
     const courses = await this.coursesService.findAll(includeInactive);
     return courses.map((course) => this.coursesService.sanitize(course));
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<CourseResponseDto> {
     const course = await this.coursesService.findById(id);
     return this.coursesService.sanitize(course);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':id')
   async update(
@@ -63,7 +66,7 @@ export class CoursesController {
     return this.coursesService.sanitize(course);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<CourseResponseDto> {
