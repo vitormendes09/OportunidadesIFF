@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Autocomplete, Box, CircularProgress, TextField, Typography } from '@mui/material';
+import { Alert, Autocomplete, Box, Button, CircularProgress, Paper, TextField, Typography } from '@mui/material';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import RestartAltOutlinedIcon from '@mui/icons-material/RestartAltOutlined';
 import { JobCard } from '@/components/student/JobCard';
 import { useCourses } from '@/hooks/useCourses';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -65,51 +67,91 @@ export default function VagasPage() {
     return Array.from(set).sort();
   }, [jobs]);
 
-  return (
-    <Box>
-      <Typography variant="h2" component="h1" gutterBottom>
-        Vagas disponíveis
-      </Typography>
+  const hasActiveFilters = Boolean(filters.course || filters.requiredPeriod || filters.specialty);
 
+  function clearFilters() {
+    setFilters({ course: null, requiredPeriod: '', specialty: '' });
+  }
+
+  return (
+    <Box sx={{ pb: 5 }}>
       <Box
         sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 2,
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          borderRadius: 2,
+          px: { xs: 2.5, md: 4 },
+          py: { xs: 3, md: 4 },
           mb: 3,
         }}
       >
-        <Autocomplete
-          options={courses}
-          value={filters.course}
-          getOptionLabel={(option) => option.name}
-          isOptionEqualToValue={(option, value) => option.id === value.id}
-          onChange={(_event, value) => setFilters((prev) => ({ ...prev, course: value }))}
-          sx={{ minWidth: 240 }}
-          renderInput={(params) => <TextField {...params} label="Curso" />}
-        />
-        <TextField
-          label="Período exigido"
-          type="number"
-          value={filters.requiredPeriod}
-          onChange={(e) => setFilters((prev) => ({ ...prev, requiredPeriod: e.target.value }))}
-          slotProps={{ htmlInput: { min: 1 } }}
-          sx={{ minWidth: 180 }}
-        />
-        <Autocomplete
-          freeSolo
-          options={specialtyOptions}
-          inputValue={filters.specialty}
-          onInputChange={(_event, value) => setFilters((prev) => ({ ...prev, specialty: value }))}
-          sx={{ minWidth: 240 }}
-          renderInput={(params) => <TextField {...params} label="Especialidade" />}
-        />
+        <Typography variant="overline" sx={{ display: 'block', letterSpacing: '0.12em', opacity: 0.8 }}>
+          Oportunidades IFF
+        </Typography>
+        <Typography variant="h2" component="h1" sx={{ color: 'inherit', mb: 1 }}>
+          Encontre sua próxima oportunidade
+        </Typography>
+        <Typography sx={{ color: 'inherit', opacity: 0.88, maxWidth: 650 }}>
+          Explore vagas de estágio e emprego conectadas à sua formação.
+        </Typography>
       </Box>
+
+      <Paper
+        variant="outlined"
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          mb: 4,
+          borderColor: 'divider',
+          borderTop: '3px solid',
+          borderTopColor: 'primary.main',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <FilterAltOutlinedIcon color="primary" />
+          <Typography variant="h3">Filtre as oportunidades</Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          {hasActiveFilters && (
+            <Button size="small" color="inherit" startIcon={<RestartAltOutlinedIcon />} onClick={clearFilters}>
+              Limpar filtros
+            </Button>
+          )}
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(240px, 1.4fr) minmax(160px, 0.7fr) minmax(240px, 1.4fr)' }, gap: 2 }}>
+          <Autocomplete
+            options={courses}
+            value={filters.course}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            onChange={(_event, value) => setFilters((prev) => ({ ...prev, course: value }))}
+            renderInput={(params) => <TextField {...params} label="Curso" />}
+          />
+          <TextField
+            label="Período exigido"
+            type="number"
+            value={filters.requiredPeriod}
+            onChange={(e) => setFilters((prev) => ({ ...prev, requiredPeriod: e.target.value }))}
+            slotProps={{ htmlInput: { min: 1 } }}
+          />
+          <Autocomplete
+            freeSolo
+            options={specialtyOptions}
+            inputValue={filters.specialty}
+            onInputChange={(_event, value) => setFilters((prev) => ({ ...prev, specialty: value }))}
+            renderInput={(params) => <TextField {...params} label="Especialidade" />}
+          />
+        </Box>
+      </Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
+      )}
+
+      {!isLoading && !error && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {jobs.length} {jobs.length === 1 ? 'oportunidade encontrada' : 'oportunidades encontradas'}
+        </Typography>
       )}
 
       {isLoading ? (

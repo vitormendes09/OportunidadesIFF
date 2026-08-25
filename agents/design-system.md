@@ -30,26 +30,26 @@ hardcoded em dois lugares.
 
 | Token | Valor | Uso sugerido |
 |---|---|---|
-| `primary` | `#004ba4` | Cor de marca principal, botões primários, links ativos |
-| `primary-container` | `#0062d2` | Estados hover/destaque de primary |
+| `primary` | `#237a3b` | Cor de marca principal, botões primários, links ativos |
+| `primary-container` | `#2f9e44` | Estados hover/destaque de primary |
 | `on-primary` | `#ffffff` | Texto sobre `primary` |
-| `on-primary-container` | `#dce5ff` | Texto sobre `primary-container` |
-| `secondary` | `#585f66` | Textos secundários, elementos neutros |
-| `secondary-container` | `#dce3eb` | Fundos neutros (chips inativos, badges neutros) |
+| `on-primary-container` | `#dff3e3` | Texto sobre `primary-container` |
+| `secondary` | `#526057` | Textos secundários, elementos neutros |
+| `secondary-container` | `#dfe9e1` | Fundos neutros (chips inativos, badges neutros) |
 | `tertiary` | `#a10219` | Uso pontual — no mockup era usado para "vaga em destaque" |
 | `tertiary-container` | `#c4262e` | Variante de tertiary |
 | `error` | `#ba1a1a` | Estados de erro, validação, badges de alerta |
 | `error-container` | `#ffdad6` | Fundo suave de erro |
-| `background` | `#f8f9ff` | Fundo geral da aplicação |
-| `surface` | `#f8f9ff` | Superfícies base |
+| `background` | `#f7faf8` | Fundo geral da aplicação |
+| `surface` | `#f7faf8` | Superfícies base |
 | `surface-container-lowest` | `#ffffff` | Cards, header, elementos "elevados" |
-| `surface-container-low` | `#eff4ff` | Fundos alternados |
-| `surface-container` | `#e5eeff` | Chips inativos, fundos de seção |
-| `surface-container-high` | `#dce9ff` | Estados hover de superfícies |
-| `on-surface` | `#0b1c30` | Texto principal |
-| `on-surface-variant` | `#424753` | Texto secundário/legendas |
-| `outline` | `#727785` | Bordas de inputs, ícones neutros |
-| `outline-variant` | `#c2c6d6` | Bordas suaves, divisores |
+| `surface-container-low` | `#edf6ef` | Fundos alternados |
+| `surface-container` | `#e2efe4` | Chips inativos, fundos de seção |
+| `surface-container-high` | `#d6e9da` | Estados hover de superfícies |
+| `on-surface` | `#10261a` | Texto principal |
+| `on-surface-variant` | `#435248` | Texto secundário/legendas |
+| `outline` | `#748178` | Bordas de inputs, ícones neutros |
+| `outline-variant` | `#c6d2c8` | Bordas suaves, divisores |
 
 > Este é um tema **light**. O mockup referenciava classes `dark:` esparsas, mas não
 > definia uma paleta dark completa. **Dark mode não faz parte do escopo fechado do

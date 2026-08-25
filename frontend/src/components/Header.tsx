@@ -1,9 +1,11 @@
 'use client';
 
 import { AppBar, Avatar, Box, Button, Toolbar, Typography } from '@mui/material';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Role } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
+import iffLogo from '@/imgs/ifflogo-removebg-preview.png';
 
 function getInitials(name: string): string {
   return name
@@ -25,9 +27,23 @@ export function Header() {
       sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
     >
       <Toolbar sx={{ maxWidth: 'container', width: '100%', mx: 'auto', gap: 3 }}>
-        <Typography variant="h3" component="span" sx={{ fontWeight: 700 }}>
-          Oportunidades IFF
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, minWidth: 0 }}>
+          <Image
+            src={iffLogo}
+            alt="Instituto Federal Fluminense"
+            width={40}
+            height={40}
+            priority
+            style={{ width: 'clamp(30px, 4vw, 40px)', height: 'auto', flexShrink: 0 }}
+          />
+          <Typography
+            variant="h3"
+            component="span"
+            sx={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: { xs: 16, sm: 18 } }}
+          >
+            Oportunidades IFF
+          </Typography>
+        </Box>
 
         {user && (
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
@@ -61,6 +77,7 @@ export function Header() {
           </Box>
         )}
       </Toolbar>
+      <Box sx={{ height: 4, bgcolor: 'primary.main' }} />
     </AppBar>
   );
 }
