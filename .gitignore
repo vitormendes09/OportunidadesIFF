@@ -1,2 +1,6 @@
 # Configurações locais de ferramentas
 .claude/
+
+# Variáveis de ambiente do Docker Compose (raiz)
+.env
+!.env.docker.example

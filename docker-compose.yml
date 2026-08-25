@@ -1,0 +1,96 @@
+# Sobe a stack completa do Oportunidades IFF: MongoDB + backend (NestJS) +
+# frontend (Next.js). Funciona igual em Windows, macOS e Linux.
+#
+#   docker compose up -d --build
+#
+# As variáveis vêm do arquivo .env na raiz do projeto (copie de .env.docker.example).
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: oportunidades-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-rootpassword}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-oportunidades-iff}
+    ports:
+      # Exposto no host para permitir inspeção via MongoDB Compass.
+      # Remova esta seção se não quiser o banco acessível fora do Docker.
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - oportunidades-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: oportunidades-backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      # "mongo" é o nome do serviço acima — resolvido pela rede interna do Compose.
+      # authSource=admin é necessário porque o usuário root vive no banco "admin".
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-rootpassword}@mongo:27017/${MONGO_DB_NAME:-oportunidades-iff}?authSource=admin
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no arquivo .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      EMAIL_VERIFICATION_ENABLED: ${EMAIL_VERIFICATION_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      ALLOWED_EMAIL_DOMAIN: ${ALLOWED_EMAIL_DOMAIN:-gsuite.iff.edu.br}
+      ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@gsuite.iff.edu.br}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin123}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - oportunidades-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Este valor é embutido no bundle do navegador em tempo de build.
+        # Precisa ser alcançável pelo NAVEGADOR (host), não pela rede do Docker.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    container_name: oportunidades-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - oportunidades-net
+
+volumes:
+  mongo-data:
+
+networks:
+  oportunidades-net:
+    driver: bridge
